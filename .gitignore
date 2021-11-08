@@ -1,0 +1,4 @@
+*.ini
+*.pyc
+appni.db
+temp/*
