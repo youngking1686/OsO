@@ -180,17 +180,20 @@ class KS_ops:
         return a
 
 def make_strikes():
-    NIFTY = int(50 * round(nse.get_index_quote('Nifty 50')['lastPrice']/50))
-    BANKNIFTY = int(100 * round(nse.get_index_quote('Nifty Bank')['lastPrice']/100))
-    n_upstks = [('NIFTY', NIFTY+x*50) for x in range(10)]
-    n_dwnstks = [('NIFTY', NIFTY-x*50) for x in range(10)]
-    n_stks = sorted(set([*n_upstks, *n_dwnstks]))
-    n_stk_list = list(zip(*n_stks))[1]
-    bn_upstks = [('BANKNIFTY', BANKNIFTY+x*100) for x in range(10)]
-    bn_dwnstks = [('BANKNIFTY', BANKNIFTY-x*100) for x in range(10)]
-    bn_stks = sorted(set([*bn_upstks, *bn_dwnstks]))
-    bn_stk_list = list(zip(*bn_stks))[1]
-    return [*n_stks, *bn_stks], n_stk_list, bn_stk_list
+    try:
+        NIFTY = int(50 * round(nse.get_index_quote('Nifty 50')['lastPrice']/50))
+        BANKNIFTY = int(100 * round(nse.get_index_quote('Nifty Bank')['lastPrice']/100))
+        n_upstks = [('NIFTY', NIFTY+x*50) for x in range(10)]
+        n_dwnstks = [('NIFTY', NIFTY-x*50) for x in range(10)]
+        n_stks = sorted(set([*n_upstks, *n_dwnstks]))
+        n_stk_list = list(zip(*n_stks))[1]
+        bn_upstks = [('BANKNIFTY', BANKNIFTY+x*100) for x in range(10)]
+        bn_dwnstks = [('BANKNIFTY', BANKNIFTY-x*100) for x in range(10)]
+        bn_stks = sorted(set([*bn_upstks, *bn_dwnstks]))
+        bn_stk_list = list(zip(*bn_stks))[1]
+        return [*n_stks, *bn_stks], n_stk_list, bn_stk_list
+    except:
+        return None, None, None
 
 def get_token_data():
     try:
@@ -203,9 +206,9 @@ def get_token_data():
         df_FnO = df_FnO[df_FnO['instrumentName'].isin(nms)]
         df_FnO.reset_index(drop=True, inplace=True)
         df_FnO.to_csv(symbol_file)
+        return True
     except:
-        messagebox.showerror("Error", "Error downloading tokens")
-        return
+        return False
         
 def get_exh_token(symbols): #Ins_strike_optyp
     df = pd.read_csv('{}/temp/ins_toks.csv'.format(mainfolder), index_col=None)
@@ -240,5 +243,3 @@ def update_exks_tokens(symbols): #Ins_strike_optyp
             ex_tokens.append(0)
             continue
     return [tok for tok in ex_tokens]
-
-get_token_data()

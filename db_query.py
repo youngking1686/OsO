@@ -79,6 +79,10 @@ class Database:
         self.cur.execute("""UPDATE opt_data SET side = ?, strike = ?, entry = ?, stop = ?, max_try = ?, qnty = ?, trade = ? WHERE option = ?""", \
             (side, strike, entry, stop, max_try, qnty, trade, option))
         self.conn.commit()
+    
+    def update_entry_params(self, option, side, entry, stop, trade):
+        self.cur.execute("""UPDATE opt_data SET side = ?, entry = ?, stop = ?, trade = ? WHERE option = ?""", (side, entry, stop, trade, option))
+        self.conn.commit()
         
     def update_trade(self, option, trade):
         self.cur.execute("""UPDATE opt_data SET trade = ? WHERE option = ?""", (trade, option))
