@@ -183,9 +183,13 @@ Set_Var.bn_ce_var()
 Set_Var.bn_pe_var()
 
 access_code = tk.StringVar()
-access_code.set('')
 limit = tk.BooleanVar()
+spot_st_df = tk.IntVar()
+opt_st_df = tk.IntVar()
+access_code.set('')
 limit.set(False)
+spot_st_df.set(15)
+opt_st_df.set(5)
 
 class Action:
     def save_broker():
@@ -247,14 +251,16 @@ class Action:
             ks.Pos_MIS_Market(ins_token, action, quantity, 'oso')
             spot = spot_level.get()
             if spot:
+                diff = spot_st_df.get()
                 entry = nifty_ltp if (opt=='NIFTY_CE' or opt=='NIFTY_PE') else bnknifty_ltp
-                stop = entry - 15 if (opt=='NIFTY_CE' or opt=='BANKNIFTY_CE') and  action == 'BUY' else \
-                        entry + 15 if (opt=='NIFTY_CE' or opt=='BANKNIFTY_CE') and  action == 'SELL' else \
-                        entry + 15 if (opt=='NIFTY_PE' or opt=='BANKNIFTY_PE') and  action == 'BUY' else entry - 15
+                stop = entry - diff if (opt=='NIFTY_CE' or opt=='BANKNIFTY_CE') and  action == 'BUY' else \
+                        entry + diff if (opt=='NIFTY_CE' or opt=='BANKNIFTY_CE') and  action == 'SELL' else \
+                        entry + diff if (opt=='NIFTY_PE' or opt=='BANKNIFTY_PE') and  action == 'BUY' else entry - diff
             else:
+                diff = opt_st_df.get()
                 entry  = n_ce_ltp if opt=='NIFTY_CE' else n_pe_ltp if opt=='NIFTY_PE' else bn_ce_ltp \
                 if opt=='BANKNIFTY_CE' else bn_pe_ltp
-                stop = (entry - 5 if entry > 5 else 0) if action == 'BUY' else (entry + 5)
+                stop = (entry - diff if entry > diff else 0) if action == 'BUY' else (entry + diff)
             db.update_entry_params(opt, side.get(), entry, stop, True)
             Action.reset_form(option)
         except AttributeError:
@@ -303,14 +309,16 @@ class Action:
     def get_param(option, side, spot_level):
         spot = spot_level.get()
         if spot:
+            diff = spot_st_df.get()
             entry = nifty_ltp if (option=='NIFTY CALL' or option=='NIFTY PUT') else bnknifty_ltp
-            stop = entry - 15 if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'long' else \
-                    entry + 15 if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'short' else \
-                    entry + 15 if (option=='NIFTY CALL' or option=='BANKNIFTY PUT') and  side.get() == 'long' else entry - 15
+            stop = entry - diff if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'long' else \
+                    entry + diff if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'short' else \
+                    entry + diff if (option=='NIFTY CALL' or option=='BANKNIFTY PUT') and  side.get() == 'long' else entry - diff
         else:
+            diff = opt_st_df.get()
             entry  = n_ce_ltp if option=='NIFTY CALL' else n_pe_ltp if option=='NIFTY PUT' else bn_ce_ltp \
             if option=='BANKNIFTY CALL' else bn_pe_ltp
-            stop = (entry - 5 if entry > 5 else 0) if side.get() == 'long' else (entry + 5)
+            stop = (entry - diff if entry > diff else 0) if side.get() == 'long' else (entry + diff)
         v.n_ce_entry.set(entry) if option=='NIFTY CALL' else v.n_pe_entry.set(entry) if option=='NIFTY PUT' else v.bn_ce_entry.set(entry) \
             if option=='BANKNIFTY CALL' else v.bn_pe_entry.set(entry)
         v.n_ce_stop.set(stop) if option=='NIFTY CALL' else v.n_pe_stop.set(stop) if option=='NIFTY PUT' else v.bn_ce_stop.set(stop) \
@@ -345,9 +353,12 @@ class Action:
         txt1.grid(row=3,column = 1, padx=10, pady=8)
         x=PrettyTable()
         x.field_names = ('Name', 'Quantity', 'Realized P&L', 'Used Margin')
-        for position in live_positions:
-            x.add_row(position)
-        txt1.insert(tk.INSERT,x)
+        try:
+            for position in live_positions:
+                x.add_row(position)
+            txt1.insert(tk.INSERT,x)
+        except TypeError:
+            pass
 
     def ks_orders():
         global live_orders
@@ -362,9 +373,12 @@ class Action:
         y=PrettyTable()
         y.field_names = ('no.' ,'Order Id', 'Time', 'Name', 'Transaction', 'Price', 'Quantity', 'Status')
         
-        for order in live_orders:
-            y.add_row(order)
-        txt2.insert(tk.INSERT,y)
+        try:
+            for order in live_orders:
+                y.add_row(order)
+            txt2.insert(tk.INSERT,y)
+        except TypeError:
+            pass
     
     def cancel_order(order_id):
         try:
@@ -386,7 +400,23 @@ class Action:
         val = limit.get()
         limit.set(val)
 
-class gui_contents():
+class gui_contents:
+    def top_ban(mframe):
+        ttk.Label(mframe, text = 'Trade Nifty Level', font = ('calibre',10,'bold')).grid(row=2,column=1, padx=5, pady=10)
+        ttk.Checkbutton(mframe, variable = v.nft_lvl, onvalue = 1, offvalue = 0, state='enabled').grid(row=3, column=1)
+        
+        ttk.Label(mframe, text = 'Trade BankNifty Level', font = ('calibre',10,'bold')).grid(row=2,column=2, padx=5, pady=10)
+        ttk.Checkbutton(mframe, variable = v.bnf_lvl, onvalue = 1, offvalue = 0, state='enabled').grid(row=3, column=2)
+        
+        ttk.Label(mframe, text = 'Limit Orders', font = ('calibre',10,'bold')).grid(row=2,column=5, padx=5, pady=10)
+        ttk.Checkbutton(mframe, variable = limit, command = Action.enable_limit, onvalue = 1, offvalue = 0, state='enabled').grid(row=3, column=5)
+        
+        ttk.Label(mframe, text = 'Spot stop dif.', font=('calibre',10, 'bold')).grid(row=2,column=3, padx=5, pady=10)
+        ttk.Entry(mframe,textvariable = spot_st_df, font=('calibre',10,'normal'), state='enabled', width=5).grid(row=2,column=4, padx=3, pady=10)
+        
+        ttk.Label(mframe, text = 'Opt stop dif.', font=('calibre',10, 'bold')).grid(row=3,column=3, padx=5, pady=15)
+        ttk.Entry(mframe,textvariable = opt_st_df, font=('calibre',10,'normal'), state='enabled', width=5).grid(row=3,column=4, padx=3, pady=10)
+        
     def tabs():
         tabControl.add(tab1, text ='Kotak Connect')
         tabControl.add(tab2, text ='Trade Action')
@@ -411,8 +441,8 @@ class gui_contents():
         ttk.Spinbox(frame, values=strikes, textvariable=strk_var, width=10, foreground="black").grid(row=1,column=4, padx=3, pady=3)
         lot_size = 50 if option=='NIFTY CALL' or option=='NIFTY PUT' else 25
         ttk.Spinbox(frame, from_=0, to=5000, increment=lot_size, textvariable=qnty, width=5, foreground="black").grid(row=2, column=4, padx=3, pady=3)
-        ttk.Spinbox(frame, from_=0, to=100000, increment=0.5, textvariable=entry, width=10, foreground="black").grid(row=1, column=6, padx=3, pady=3)
-        ttk.Spinbox(frame, from_=0, to=100000, increment=0.5, textvariable=stop, width=10, foreground="black").grid(row=2, column=6, padx=3, pady=3)
+        ttk.Spinbox(frame, from_=0, to=100000, increment=0.3, textvariable=entry, width=10, foreground="black").grid(row=1, column=6, padx=3, pady=3)
+        ttk.Spinbox(frame, from_=0, to=100000, increment=0.3, textvariable=stop, width=10, foreground="black").grid(row=2, column=6, padx=3, pady=3)
         ttk.Spinbox(frame, from_=0, to=100, increment=1, textvariable=max_try, width=5, foreground="black").grid(row=1, column=8, padx=3, pady=3)
         
         update_param = partial(Action.save_form, option, side, strk_var, entry, stop, max_try, qnty, active, spot_level)
@@ -421,15 +451,15 @@ class gui_contents():
         enter_param = partial(Action.place_order, option, side, qnty, spot_level)
         exit_param = partial(Action.exit_order, option)
         get_param = partial(Action.get_param, option, side, spot_level)
-        get_p = tk.Button(frame,text = 'G',  font = ('',12,'bold'), command = get_param, width=3, bg="#e6e600", state=NORMAL)
+        get_p = tk.Button(frame,text = 'G',  font = ('',8,'bold'), command = get_param, width=3, bg="#e6e600", state=NORMAL)
         get_p.grid(row=1,column=9, padx=6, pady=3)
-        reset = tk.Button(frame,text = 'R',  font = ('',12,'bold'), command = reset_param, width=3, bg="#66d9ff", state=NORMAL)
+        reset = tk.Button(frame,text = 'R',  font = ('',8,'bold'), command = reset_param, width=3, bg="#66d9ff", state=NORMAL)
         reset.grid(row=2,column=9, padx=6, pady=3)
         brk_eve = tk.Button(frame,text = 'B', font = ('',12,'bold'), command = breakeven, width=3, bg="#0066ff", state=NORMAL)
         brk_eve.grid(row=1,column=10, padx=6, pady=3)
-        update = tk.Button(frame,text = 'U', font = ('',12,'bold'), command = update_param, width=3, state=NORMAL)
+        update = tk.Button(frame,text = 'L', font = ('',12,'bold'), command = update_param, width=3, bg='#d65cad', state=NORMAL)
         update.grid(row=2, column=10, padx=6, pady=3)
-        enter = tk.Button(frame,text = 'E', font = ('',12,'bold'), command = enter_param, width=3, bg="#33cc33")
+        enter = tk.Button(frame,text = 'N', font = ('',12,'bold'), command = enter_param, width=3, bg="#33cc33")
         enter.grid(row=1,column=11, padx=6, pady=3)
         exit = tk.Button(frame,text = 'X', font = ('',12,'bold'), command = exit_param, width=3, bg="#ff3300")
         exit.grid(row=2,column=11, padx=6, pady=3)
@@ -476,7 +506,8 @@ class gui_contents():
         can_order = partial(Action.cancel_order, v.cancel_order_id.get())
         ttk.Button(tab4,text = 'Cancel Order', command = can_order, width=15, state='enabled').grid(row=1,column=3, padx=10, pady=10)
         
-    def tab_contents():
+    def tab_contents(mframe):
+        gui_contents.top_ban(mframe)
         gui_contents.connection()
         gui_contents.trades()
         gui_contents.positions()
@@ -497,7 +528,7 @@ frame2.pack(padx=10, pady=15)
 frame3 = ttk.Frame(tab2, width=800, height=300)
 frame3.pack(padx=10, pady=15)
 gui_contents.tabs()
-gui_contents.tab_contents()
+gui_contents.tab_contents(mframe)
 
 async def ltp_display(nf_ltp, bnf_ltp, opt0_ltp, opt1_ltp, opt2_ltp, opt3_ltp, opt0_tried, opt1_tried,
                       opt2_tried, opt3_tried, opt0_iv, opt1_iv, opt2_iv, opt3_iv):
@@ -564,20 +595,11 @@ async def ks_trader(n_ce_status, n_pe_status, bn_ce_status, bn_pe_status):
                 pass
         await at.sleep(1000, after=bn_pe_status.after)
 
-ttk.Checkbutton(mframe, variable = v.nft_lvl, onvalue = 1, offvalue = 0, state='enabled').grid(row=3, column=1)
-ttk.Label(mframe, text = 'Trade Nifty Level', font = ('calibre',10,'bold')).grid(row=2,column=1, padx=8, pady=15)
-
-ttk.Checkbutton(mframe, variable = v.bnf_lvl,onvalue = 1, offvalue = 0, state='enabled').grid(row=3, column=2)
-ttk.Label(mframe, text = 'Trade BankNifty Level', font = ('calibre',10,'bold')).grid(row=2,column=2, padx=8, pady=15)
-
-ttk.Checkbutton(mframe, variable = limit, command = Action.enable_limit, onvalue = 1, offvalue = 0, state='enabled').grid(row=3, column=3, columnspan=6)
-ttk.Label(mframe, text = 'Limit Orders', font = ('calibre',10,'bold')).grid(row=2,column=3, columnspan=6, padx=8, pady=15)
-
 class labels:
     nf_ltp = ttk.Label(mframe, width=20, font=('calibre', 20))
-    nf_ltp.grid(row = 1,column = 1, padx = 25, pady = 10)
+    nf_ltp.grid(row = 1,column = 1, columnspan=2, padx = 25, pady = 10)
     bnf_ltp = ttk.Label(mframe, width=20, font=('calibre', 20))
-    bnf_ltp.grid(row = 1,column = 6, padx = 25, pady = 10)
+    bnf_ltp.grid(row = 1,column = 4, columnspan=5, padx = 25, pady = 10)
     opt0_ltp = ttk.Label(frame0, width=10, font = ('calibre',10,'bold'), style= 'Test.TLabel', justify=CENTER)
     opt0_ltp.grid(row=1, column=13, padx=5, pady=10)
     opt1_ltp = ttk.Label(frame1, width=10, font = ('calibre',10,'bold'), justify=CENTER)
