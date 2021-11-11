@@ -284,6 +284,18 @@ class Action:
         try:
             ks.Exit_Market(ins_token, 'oso')
             Action.reset_form(option)
+            if option == 'NIFTY_CE':
+                l.n_ce_status['text'] = 'CLS'
+                l.n_ce_status.configure(background='#ff7500')
+            elif option == 'NIFTY_PE':
+                l.n_pe_status['text'] = 'CLS'
+                l.n_pe_status.configure(background='#ff7500')
+            elif option == 'BANKNIFTY_CE':
+                l.bn_ce_status['text'] = 'CLS'
+                l.bn_ce_status.configure(background='#ff7500')
+            else:
+                l.bn_pe_status['text'] = 'CLS'
+                l.bn_pe_status.configure(background='#ff7500')
         except AttributeError:
             messagebox.showerror("Error", "Check your connection, relogin and try again!")
             
@@ -405,9 +417,9 @@ class gui_contents():
         get_p = tk.Button(frame,text = 'G',  font = ('',12,'bold'), command = get_param, width=3, bg="#e6e600", state=NORMAL)
         get_p.grid(row=1,column=9, padx=6, pady=3)
         reset = tk.Button(frame,text = 'R',  font = ('',12,'bold'), command = reset_param, width=3, bg="#66d9ff", state=NORMAL)
-        reset.grid(row=1,column=10, padx=6, pady=3)
+        reset.grid(row=2,column=9, padx=6, pady=3)
         brk_eve = tk.Button(frame,text = 'B', font = ('',12,'bold'), command = breakeven, width=3, bg="#0066ff", state=NORMAL)
-        brk_eve.grid(row=2,column=9, padx=6, pady=3)
+        brk_eve.grid(row=1,column=10, padx=6, pady=3)
         update = tk.Button(frame,text = 'U', font = ('',12,'bold'), command = update_param, width=3, state=NORMAL)
         update.grid(row=2, column=10, padx=6, pady=3)
         enter = tk.Button(frame,text = 'E', font = ('',12,'bold'), command = enter_param, width=3, bg="#33cc33")
