@@ -83,26 +83,49 @@ class KS_ops:
         
     def get_position(self):
         try:
-            resp = self.client.positions(position_type = "TODAYS")
-            positions = resp['Success']
+            positions = self.client.positions(position_type = "TODAYS")['Success']
             if not positions:
                 return None
-            resp = [(position['instrumentName'], position['netTrdQtyLot'], round(position['realizedPL'],2)) for position in positions if position['deliveryStatus'] == 12] #and position['netTrdQtyLot'] > 0]
+            resp = [(pos['instrumentName'], pos['netTrdQtyLot'], round(pos['realizedPL'],2), pos['grossUtilization']) for pos in positions if pos['deliveryStatus'] == 12]
             return resp
         except:
             return None
       
     def get_orders(self):
         try:
-            resp = self.client.order_report()
-            orders = resp['success']
+            orders = self.client.order_report()['success']
+            trades = self.client.trade_report()['success']
             if not orders:
                 return None
-            resp = [( order['orderTimestamp'], order['instrumentName'] + '-' + str(order['expiryDate']) + '-' + str(order['strikePrice']) + '-' + str(order['optionType']), \
-                    order['transactionType'], order['orderQuantity'], order['statusInfo']) for order in orders if order['product'] == 'MIS']
-            return resp
+            else:
+                lis = []
+                for i, order in enumerate(orders):
+                    if order['product'] == 'MIS' :
+                        time = order['orderTimestamp'].split(' ')[3]
+                        order_id = order['orderId']
+                        name = order['instrumentName'] + '-' + str(order['expiryDate']) + '-' + str(order['strikePrice']) + '-' + str(order['optionType'])
+                        side = order['transactionType']
+                        qnty = order['orderQuantity']
+                        status = order['status']
+                        if status == 'TRAD':
+                            price = next(trade['price'] for trade in trades if (trade['orderId']==order_id and trade['transactionType']==side))
+                        else:
+                            price = None
+                        lis.append((i, order_id, time, name, side, price, qnty, status))
+                    continue
+                order_list = sorted(lis, key = lambda x: x[0], reverse=True)
+                return order_list
         except:
             return None
+    
+    def cancel_order(self, order_id):
+        try:
+            resp = self.client.cancel_order(order_id)
+            messagebox.showinfo("Cancelled", f"Cancelled order: {order_id}")
+            return resp
+        except Exception as e:
+            messagebox.showerror("Error", "Failed Cancelling order: %s\n" % e)
+            return
         
     def long_action(self, opt, ins_token, ltp, entry_price, stop_price, max_try, exists, qty, limit, a):
         if ltp >= entry_price and a <= max_try and not exists:

@@ -8,6 +8,7 @@ password = tk.StringVar()
 app_id = tk.StringVar()
 consumer_key = tk.StringVar()
 access_token = tk.StringVar()
+cancel_order_id = tk.StringVar()
 
 nft_lvl=tk.IntVar()
 bnf_lvl=tk.IntVar()

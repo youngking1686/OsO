@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import tkinter.scrolledtext as scrolledtext
 from ttkthemes import ThemedStyle
-from tkinter.constants import CENTER, NORMAL, TRUE
+from tkinter.constants import CENTER, NORMAL
 import asynctkinter as at
 import NFO_expiry_calc, config
 from db_query import Database
@@ -125,6 +125,7 @@ class Set_Var:
         v.app_id.set(userr[3])
         v.consumer_key.set(userr[4])
         v.access_token.set(userr[5])
+        v.cancel_order_id.set('')
 
     def spo_var():
         v.nft_lvl.set(db.fetch('NIFTY_CE')[8])
@@ -339,11 +340,11 @@ class Action:
         except AttributeError:
             messagebox.showerror("Error", "Check your connection and try again!") 
         ttk.Label(tab3, text = 'Positions', font = ('calibre',10,'bold')).grid(row=2,column=1, padx=8, pady=5)
-        txt1 = scrolledtext.ScrolledText(tab3, undo=True, wrap='word', height = 22, width = 60, bg="light blue")
+        txt1 = scrolledtext.ScrolledText(tab3, undo=True, wrap='word', height = 22, width = 86, bg="light blue")
         txt1['font'] = ('consolas', '10')
         txt1.grid(row=3,column = 1, padx=10, pady=8)
         x=PrettyTable()
-        x.field_names = ('Name', 'Quantity', 'Realized P&L')
+        x.field_names = ('Name', 'Quantity', 'Realized P&L', 'Used Margin')
         for position in live_positions:
             x.add_row(position)
         txt1.insert(tk.INSERT,x)
@@ -355,15 +356,21 @@ class Action:
         except AttributeError:
             messagebox.showerror("Error", "Check your connection and try again!")
         ttk.Label(tab4, text = 'Orders', font = ('calibre',10,'bold')).grid(row=2,column=1, padx=8, pady=5)
-        txt2 = scrolledtext.ScrolledText(tab4, undo=True, wrap='word', height = 22, width = 95, bg="light green")
+        txt2 = scrolledtext.ScrolledText(tab4, undo=True, wrap='word', height = 22, width = 115, bg="light green")
         txt2['font'] = ('consolas', '10')
-        txt2.grid(row=3,column = 1, padx=10, pady=8)
+        txt2.grid(row=3,column = 1, columnspan=3, padx=10, pady=8)
         y=PrettyTable()
-        y.field_names = ('Time', 'Name', 'Transaction', 'Quantity', 'Status')
+        y.field_names = ('no.' ,'Order Id', 'Time', 'Name', 'Transaction', 'Price', 'Quantity', 'Status')
         
         for order in live_orders:
             y.add_row(order)
         txt2.insert(tk.INSERT,y)
+    
+    def cancel_order(order_id):
+        try:
+            ks.cancel_order(order_id)
+        except AttributeError:
+            messagebox.showerror("Error", "Check your connection, relogin and try again!")
             
     def switch_brk():
         global save_brk, edit_brk, f1_brk, f2_brk, f3_brk, f4_brk, f5_brk
@@ -464,8 +471,10 @@ class gui_contents():
         pos_but.grid(row=1,column=1, padx=10, pady=10)
         
     def orders():
-        ord_but = ttk.Button(tab4,text = 'Refresh', command = Action.ks_orders, width=15, state='enabled')
-        ord_but.grid(row=1,column=1, padx=10, pady=10)
+        ttk.Button(tab4,text = 'Refresh', command = Action.ks_orders, width=15, state='enabled').grid(row=1,column=1, padx=40, pady=10)
+        ttk.Entry(tab4, textvariable = v.cancel_order_id, font=('calibre',10,'normal'), state='enabled').grid(row=1,column=2, padx=3, pady=15)
+        can_order = partial(Action.cancel_order, v.cancel_order_id.get())
+        ttk.Button(tab4,text = 'Cancel Order', command = can_order, width=15, state='enabled').grid(row=1,column=3, padx=10, pady=10)
         
     def tab_contents():
         gui_contents.connection()
