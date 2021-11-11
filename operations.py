@@ -147,35 +147,35 @@ class KS_ops:
                 a = KS_ops.short_action(self, opt, ins_token, ltp, entry_price, stop_price, max_try, exists, qty, limit, a)
         elif spot_level and (opt == 'NIFTY_PE' or opt == 'BANKNIFTY_PE'):
             if side == 'long':
-                if ltp <= entry_price and a <= max_try and not exists:
+                if ltp <= entry_price and a < max_try and not exists:
                     if limit:
                         KS_ops.Pos_MIS_Limit(self, ins_token, 'BUY', qty, entry_price,'Buy order')
                     else:
                         KS_ops.Pos_MIS_Market(self, ins_token, 'BUY', qty, 'Buy order')
                     a+=1
-                elif ltp >= stop_price and a <= max_try and exists:
+                elif ltp >= stop_price and a < max_try and exists:
                     a+=1
                     if limit:
                         KS_ops.Pos_MIS_Limit(self, ins_token, 'SELL', qty, stop_price,'Sell order')
                     else:
                         KS_ops.Pos_MIS_Market(self, ins_token, 'SELL', qty, 'Sell order')
-                elif a > max_try:
+                elif a >= max_try:
                     db.update_trade(opt, False)
                 
             elif side == 'short':
-                if ltp >= entry_price and a <= max_try and not exists:
+                if ltp >= entry_price and a < max_try and not exists:
                     if limit:
                         KS_ops.Pos_MIS_Limit(self, ins_token, 'SELL', qty, entry_price,'Sell order')
                     else:
                         KS_ops.Pos_MIS_Market(self, ins_token, 'SELL', qty, 'Sell order')
                     a+=1
-                elif ltp <= stop_price and a <= max_try and exists:
+                elif ltp <= stop_price and a < max_try and exists:
                     a+=1
                     if limit:
                         KS_ops.Pos_MIS_Limit(self, ins_token, 'BUY', qty, stop_price,'Buy order')
                     else:
                         KS_ops.Pos_MIS_Market(self, ins_token, 'BUY', qty, 'Buy order')
-                elif a > max_try:
+                elif a >= max_try:
                     db.update_trade(opt, False)
         return a
 

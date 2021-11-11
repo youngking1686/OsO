@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import tkinter.scrolledtext as scrolledtext
 from ttkthemes import ThemedStyle
-from tkinter.constants import CENTER, NORMAL
+from tkinter.constants import CENTER, NORMAL, TRUE
 import asynctkinter as at
 import NFO_expiry_calc, config
 from db_query import Database
@@ -286,7 +286,23 @@ class Action:
             Action.reset_form(option)
         except AttributeError:
             messagebox.showerror("Error", "Check your connection, relogin and try again!")
-    
+            
+    def get_param(option, side, spot_level):
+        spot = spot_level.get()
+        if spot:
+            entry = nifty_ltp if (option=='NIFTY CALL' or option=='NIFTY PUT') else bnknifty_ltp
+            stop = entry - 15 if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'long' else \
+                    entry + 15 if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'short' else \
+                    entry + 15 if (option=='NIFTY CALL' or option=='BANKNIFTY PUT') and  side.get() == 'long' else entry - 15
+        else:
+            entry  = n_ce_ltp if option=='NIFTY CALL' else n_pe_ltp if option=='NIFTY PUT' else bn_ce_ltp \
+            if option=='BANKNIFTY CALL' else bn_pe_ltp
+            stop = (entry - 5 if entry > 5 else 0) if side.get() == 'long' else (entry + 5)
+        v.n_ce_entry.set(entry) if option=='NIFTY CALL' else v.n_pe_entry.set(entry) if option=='NIFTY PUT' else v.bn_ce_entry.set(entry) \
+            if option=='BANKNIFTY CALL' else v.bn_pe_entry.set(entry)
+        v.n_ce_stop.set(stop) if option=='NIFTY CALL' else v.n_pe_stop.set(stop) if option=='NIFTY PUT' else v.bn_ce_stop.set(stop) \
+            if option=='BANKNIFTY CALL' else v.bn_pe_stop.set(stop)
+            
     def ks_login():
         global ks, start_trading #, app_stat
         if access_code.get() == "":
@@ -360,9 +376,6 @@ class gui_contents():
         tabControl.pack(expand = 1, fill ="both", padx = 20)
         
     def trade_frame(frame, style, active, option, side, strk_var, entry, stop, max_try, qnty, spot_level):
-        # ttk.Label(frame, text = 'Trade', font = ('calibre',10,'bold'), style= style).grid(row=1,column=1, padx=8, pady=5)
-        # ttk.Label(frame, text = 'Option', font = ('calibre',10,'bold'), style= style).grid(row=1,column=2, padx=8, pady=5)
-        # ttk.Label(frame, text = 'Side', font = ('calibre',10,'bold'), width=10, style= style).grid(row=1,column=3, padx=8, pady=5)
         ttk.Label(frame, text = 'Strk', font = ('calibre',10,'bold'), style= style).grid(row=1,column=3, padx=3, pady=3)
         ttk.Label(frame, text = 'Qnty', font = ('calibre',10,'bold'), style= style).grid(row=2,column=3, padx=3, pady=3)
         ttk.Label(frame, text = 'Entry', font = ('calibre',10,'bold'), style= style).grid(row=1,column=5, padx=3, pady=3)
@@ -371,7 +384,6 @@ class gui_contents():
         ttk.Label(frame, text = 'Tried', font = ('calibre',10,'bold'), style= style).grid(row=2,column=7, padx=3, pady=3)
         ttk.Label(frame, text = 'LTP', font = ('calibre',10,'bold'), style= style).grid(row=1,column=12, padx=3, pady=3)
         ttk.Label(frame, text = 'IV', font = ('calibre',10,'bold'), style= style).grid(row=2,column=12, padx=3, pady=3)
-        # ttk.Label(frame, text = 'Position', font = ('calibre',10,'bold'), style= style).grid(row=3,column=2, padx=8, pady=5)
         
         ttk.Checkbutton(frame, variable = active, onvalue = 1, offvalue = 0, state='enabled').grid(row=1, column=1, padx=8, pady=3)
         ttk.Label(frame, text = option, width=17, font=('calibre',10, 'bold'), style= style).grid(row=1,column=2, padx=8, pady=3)
@@ -389,17 +401,18 @@ class gui_contents():
         breakeven = partial(Action.break_even, option, side, entry, spot_level, active)
         enter_param = partial(Action.place_order, option, side, qnty, spot_level)
         exit_param = partial(Action.exit_order, option)
-        reset = tk.Button(frame,text = u"\u21BA",  font = ('',12,'bold'), command = reset_param, width=3, bg="#A1DAFA", state=NORMAL)
+        get_param = partial(Action.get_param, option, side, spot_level)
+        get_p = tk.Button(frame,text = 'G',  font = ('',12,'bold'), command = get_param, width=3, bg="#e6e600", state=NORMAL)
+        get_p.grid(row=1,column=9, padx=6, pady=3)
+        reset = tk.Button(frame,text = 'R',  font = ('',12,'bold'), command = reset_param, width=3, bg="#66d9ff", state=NORMAL)
         reset.grid(row=1,column=10, padx=6, pady=3)
-        brk_eve = tk.Button(frame,text = 'B', font = ('',12,'bold'), command = breakeven, width=3, bg="#6051EF", state=NORMAL) #u"\u24B7"
+        brk_eve = tk.Button(frame,text = 'B', font = ('',12,'bold'), command = breakeven, width=3, bg="#0066ff", state=NORMAL)
         brk_eve.grid(row=2,column=9, padx=6, pady=3)
-        # coms = tk.Button(frame,text = 'V', font = ('',12,'bold'), command = update_param, width=3, state=NORMAL) #u'\u24CA'
-        # coms.grid(row=1, column=10, padx=6, pady=3)
-        update = tk.Button(frame,text = 'U', font = ('',12,'bold'), command = update_param, width=3, state=NORMAL) #u'\u24CA'
+        update = tk.Button(frame,text = 'U', font = ('',12,'bold'), command = update_param, width=3, state=NORMAL)
         update.grid(row=2, column=10, padx=6, pady=3)
-        enter = tk.Button(frame,text = 'E', font = ('',12,'bold'), command = enter_param, width=3, bg="#00bf73") #u'\u24BA'
+        enter = tk.Button(frame,text = 'E', font = ('',12,'bold'), command = enter_param, width=3, bg="#33cc33")
         enter.grid(row=1,column=11, padx=6, pady=3)
-        exit = tk.Button(frame,text = 'X', font = ('',12,'bold'), command = exit_param, width=3, bg="#ff6161") #u'\u24CD'
+        exit = tk.Button(frame,text = 'X', font = ('',12,'bold'), command = exit_param, width=3, bg="#ff3300")
         exit.grid(row=2,column=11, padx=6, pady=3)
         
     def connection():
@@ -572,18 +585,13 @@ class labels:
     opt3_tried.grid(row=2, column=8, padx=5, pady=10)
 
     n_ce_status = ttk.Label(frame0, font = ('calibre',10,'bold'), width=5, style= 'Test.TLabel')
-    n_ce_status.grid(row=1,column=9, padx=8, pady=5)
+    n_ce_status.grid(row=2,column=1, padx=8, pady=5)
     n_pe_status = ttk.Label(frame1, font = ('calibre',10,'bold'), width=5)
-    n_pe_status.grid(row=1,column=9, padx=8, pady=5)
+    n_pe_status.grid(row=2,column=1, padx=8, pady=5)
     bn_ce_status = ttk.Label(frame2, font = ('calibre',10,'bold'), width=5, style= 'Test.TLabel')
-    bn_ce_status.grid(row=1,column=9, padx=8, pady=5)
+    bn_ce_status.grid(row=2,column=1, padx=8, pady=5)
     bn_pe_status = ttk.Label(frame3, font = ('calibre',10,'bold'), width=5)
-    bn_pe_status.grid(row=1,column=9, padx=8, pady=5)
-
-    n_ce_status['text'] = 'OPN'
-    n_ce_status.configure(background='#00ff00')
-    n_pe_status['text'] = 'CLS'
-    n_pe_status.configure(background='#ff7500')
+    bn_pe_status.grid(row=2,column=1, padx=8, pady=5)
 
 l = labels()
 at.start(ltp_display(l.nf_ltp, l.bnf_ltp, l.opt0_ltp, l.opt1_ltp, l.opt2_ltp, l.opt3_ltp,

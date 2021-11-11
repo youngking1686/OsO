@@ -71,18 +71,26 @@ class Database:
         return rows
 
     def update_all_params(self, option, side, strike, entry, stop, max_try, qnty, spot_level, trade):
-        opt = option.split('_')
-        if opt[0] == 'NIFTY':
-            Database.ref_lvl(self, 'NIFTY', spot_level)
-        else:
-            Database.ref_lvl(self, 'BANKNIFTY', spot_level)
-        self.cur.execute("""UPDATE opt_data SET side = ?, strike = ?, entry = ?, stop = ?, max_try = ?, qnty = ?, trade = ? WHERE option = ?""", \
-            (side, strike, entry, stop, max_try, qnty, trade, option))
-        self.conn.commit()
+        try:
+            lock.acquire(True)
+            opt = option.split('_')
+            if opt[0] == 'NIFTY':
+                Database.ref_lvl(self, 'NIFTY', spot_level)
+            else:
+                Database.ref_lvl(self, 'BANKNIFTY', spot_level)
+            self.cur.execute("""UPDATE opt_data SET side = ?, strike = ?, entry = ?, stop = ?, max_try = ?, qnty = ?, trade = ? WHERE option = ?""", \
+                (side, strike, entry, stop, max_try, qnty, trade, option))
+            self.conn.commit()
+        finally:
+            lock.release()
     
     def update_entry_params(self, option, side, entry, stop, trade):
-        self.cur.execute("""UPDATE opt_data SET side = ?, entry = ?, stop = ?, trade = ? WHERE option = ?""", (side, entry, stop, trade, option))
-        self.conn.commit()
+        try:
+            lock.acquire(True)
+            self.cur.execute("""UPDATE opt_data SET side = ?, entry = ?, stop = ?, trade = ? WHERE option = ?""", (side, entry, stop, trade, option))
+            self.conn.commit()
+        finally:
+            lock.release()
         
     def update_trade(self, option, trade):
         self.cur.execute("""UPDATE opt_data SET trade = ? WHERE option = ?""", (trade, option))
