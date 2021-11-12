@@ -107,11 +107,12 @@ tabControl = ttk.Notebook(root)
 
 texts = ('NIFTY CALL', 'NIFTY PUT', 'BANKNIFTY CALL', 'BANKNIFTY PUT')
 sides = ('short', 'long')
+expiry = ('current', 'next')
 
 if not NFO_LIST:
     messagebox.showerror("Error", "Check your internet connection")
     sys.exit()
-start_websocket(NFO_LIST)
+# start_websocket(NFO_LIST)
 
 if not ops.get_token_data():
     messagebox.showwarning("Warning", "Error downloading tokens")
@@ -229,7 +230,7 @@ class Action:
                 global bn_pe_tried
                 bn_pe_tried=0
             db.update_all_params(opt, side.get(), int(strk_var.get()), float(entry.get()), float(stop.get()), int(max_try.get()), 
-                                    int(qnty.get()), spot_level.get(), active.get())
+                                    int(qnty.get()), spot_level.get(), active.get())            
         outs = [(x[1]+'_'+str(x[3])+'_current', x[3]) for x in db.fetch_all()]
         symbols = list(zip(*outs))[0]
         n_ce_strike, n_pe_strike, bn_ce_strike, bn_pe_strike = [x for x in list(zip(*outs))[1]]
@@ -313,7 +314,7 @@ class Action:
             entry = nifty_ltp if (option=='NIFTY CALL' or option=='NIFTY PUT') else bnknifty_ltp
             stop = entry - diff if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'long' else \
                     entry + diff if (option=='NIFTY CALL' or option=='BANKNIFTY CALL') and  side.get() == 'short' else \
-                    entry + diff if (option=='NIFTY CALL' or option=='BANKNIFTY PUT') and  side.get() == 'long' else entry - diff
+                    entry + diff if (option=='NIFTY PUT' or option=='BANKNIFTY PUT') and  side.get() == 'long' else entry - diff
         else:
             diff = opt_st_df.get()
             entry  = n_ce_ltp if option=='NIFTY CALL' else n_pe_ltp if option=='NIFTY PUT' else bn_ce_ltp \
