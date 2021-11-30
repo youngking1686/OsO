@@ -4,8 +4,8 @@ import threading
 
 lock = threading.Lock()
 
-if not os.path.isfile('appni.db'):
-    conn = sqlite3.connect('appni.db')
+if not os.path.isfile('app.db'):
+    conn = sqlite3.connect('app.db')
     cur = conn.cursor()
 
     cur.execute("""
