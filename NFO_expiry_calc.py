@@ -2,19 +2,19 @@ import pendulum
 from pendulum.date import Date
 
 listOfNseHolidays = set([
-    Date(2021, 1, 26),  # Republic Day
-    Date(2021, 3, 11),  # Maha Shivaratri
-    Date(2021, 3, 29),  # Holi
-    Date(2021, 4, 2),  # Good Friday
-    Date(2021, 4, 14),  # Dr.Baba Saheb Ambedkar Jayanti
-    Date(2021, 4, 21),  # Ram Navami
-    Date(2021, 5, 13),  # Id-ul-Fitr
-    Date(2021, 7, 21),  # Id-al-Adha
-    Date(2021, 8, 19),  # Ashura
-    Date(2021, 9, 10),  # Ganesh Chaturthi
-    Date(2021, 10, 15),  # Vijaya Dashami
-    Date(2021, 11, 4),  # Diwali/Laxmi Puja
-    Date(2021, 11, 19)   # Guru Nanak Jayanti
+    Date(2022, 1, 26),  # Republic Day
+    Date(2022, 3, 1),  # Maha Shivaratri
+    Date(2022, 3, 18),  # Holi
+    Date(2022, 4, 14),  # Dr.Baba Saheb Ambedkar Jayanti
+    Date(2022, 4, 15),  # Good Friday
+    Date(2022, 5, 3),  # Id-ul-Fitr
+    Date(2022, 8, 9),  # Moharam
+    Date(2022, 8, 15),  # Independence day
+    Date(2022, 8, 31),  # Ganesh Chaturthi
+    Date(2022, 10, 5),  # Dussehra
+    Date(2022, 10, 24),  # Diwali/Laxmi Puja
+    Date(2022, 10, 26),  # Diwali-Balipratipada
+    Date(2022, 11, 8)   # Guru Nanak Jayanti
 ])
 
 def getNearestWeeklyExpiryDate():

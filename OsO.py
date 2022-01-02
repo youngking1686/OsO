@@ -12,9 +12,10 @@ from functools import partial
 from prettytable import PrettyTable
 import datetime, sys
 import operations as ops
-# import mibian, csv, os #showIV
-# import matplotlib.pyplot as plt #showIV 
-# from matplotlib.animation import FuncAnimation #showIV
+import mibian, csv, os #showIV
+import matplotlib.pyplot as plt #showIV 
+from matplotlib.animation import FuncAnimation #showIV
+import pandas as pd
 
 at.patch_unbind()
 socket_opened = False
@@ -30,35 +31,35 @@ n_ce_tried, n_pe_tried, bn_ce_tried, bn_pe_tried = 0, 0, 0, 0
 days_to_expiry = 0
 tpnl = 0
 
-# plt.style.use('fivethirtyeight') #showIV
-# x_vals = [] #showIV
-# y_vals = [] #showIV 
-# x_value = 0 #showIV
-# iv_val = 0 #showIV
-# fieldnames = ["Time", "iv"] #showIV
+plt.style.use('fivethirtyeight') #showIV
+x_vals = [] #showIV
+y_vals = [] #showIV 
+x_value = 0 #showIV
+iv_val = 0 #showIV
+fieldnames = ["Time", "iv"] #showIV
 
-# def file_create(options): #showIV
-#     for option in options:
-#         opt = 'n_ce' if option == 'NIFTY CALL' else 'n_pe' if option == 'NIFTY PUT' else 'bn_ce' if option == 'BANKNIFTY CALL' else 'bn_pe'
-#         with open('{}/temp/{}.csv'.format(mainfolder, opt), 'w', newline='') as file:
-#             writer = csv.DictWriter(file, fieldnames=fieldnames)
-#             writer.writeheader()
+def file_create(options): #showIV
+    for option in options:
+        opt = 'n_ce' if option == 'NIFTY CALL' else 'n_pe' if option == 'NIFTY PUT' else 'bn_ce' if option == 'BANKNIFTY CALL' else 'bn_pe'
+        with open('{}/temp/{}.csv'.format(mainfolder, opt), 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
 
-# def iv_writer(option, x_value, iv_val): #showIV
-#         with open('{}/temp/{}.csv'.format(mainfolder, option), 'a', newline='') as csv_file:
-#             csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-#             info = {
-#                 "Time": x_value,
-#                 "iv": iv_val
-#             }
-#             csv_writer.writerow(info)
+def iv_writer(option, x_value, iv_val): #showIV
+        with open('{}/temp/{}.csv'.format(mainfolder, option), 'a', newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            info = {
+                "Time": x_value,
+                "iv": iv_val
+            }
+            csv_writer.writerow(info)
 
 def start_websocket(NFO_LIST):
     global nf_tok
     global bn_tok
     global days_to_expiry
-    username = '245632'
-    password = 'Alib@890'
+    username = '174874'
+    password = 'Delldoll789$'
     api_secret = 're4kOfrybl8UXS3XPB3zWGbhL1rEsdw2rEydFME353BVuDdkArzeMoDji4iLo5cz' #ilay-account
     app_id = 'KoemGSfEvi'
     twoFA = '1986'
@@ -101,20 +102,20 @@ def event_handler_quote_update(message):
         bnknifty_ltp = message['ltp']
     elif ex_token == n_ce_tok:
         n_ce_ltp = message['ltp']
-        # n_ce_iv =  round(mibian.BS([nifty_ltp, n_ce_strike, 10, days_to_expiry], callPrice=n_ce_ltp).impliedVolatility, 2) #showIV
-        # iv_writer('n_ce', message['exchange_time_stamp'], n_ce_iv) #showIV
+        n_ce_iv =  round(mibian.BS([nifty_ltp, n_ce_strike, 10, days_to_expiry], callPrice=n_ce_ltp).impliedVolatility, 2) #showIV
+        iv_writer('n_ce', message['exchange_time_stamp'], n_ce_iv) #showIV
     elif ex_token == n_pe_tok:
         n_pe_ltp = message['ltp']
-        # n_pe_iv =  round(mibian.BS([nifty_ltp, n_pe_strike, 10, days_to_expiry], putPrice=n_pe_ltp).impliedVolatility, 2) #showIV
-        # iv_writer('n_pe', message['exchange_time_stamp'], n_pe_iv) #showIV
+        n_pe_iv =  round(mibian.BS([nifty_ltp, n_pe_strike, 10, days_to_expiry], putPrice=n_pe_ltp).impliedVolatility, 2) #showIV
+        iv_writer('n_pe', message['exchange_time_stamp'], n_pe_iv) #showIV
     elif ex_token == bn_ce_tok:
         bn_ce_ltp = message['ltp']
-        # bn_ce_iv =  round(mibian.BS([bnknifty_ltp, bn_ce_strike, 10, days_to_expiry], callPrice=bn_ce_ltp).impliedVolatility, 2) #showIV
-        # iv_writer('bn_ce', message['exchange_time_stamp'], bn_ce_iv) #showIV
+        bn_ce_iv =  round(mibian.BS([bnknifty_ltp, bn_ce_strike, 10, days_to_expiry], callPrice=bn_ce_ltp).impliedVolatility, 2) #showIV
+        iv_writer('bn_ce', message['exchange_time_stamp'], bn_ce_iv) #showIV
     elif ex_token == bn_pe_tok:
         bn_pe_ltp = message['ltp']
-        # bn_pe_iv =  round(mibian.BS([bnknifty_ltp, bn_pe_strike, 10, days_to_expiry], putPrice=bn_pe_ltp).impliedVolatility, 2) #showIV
-        # iv_writer('bn_pe', message['exchange_time_stamp'], bn_pe_iv) #showIV
+        bn_pe_iv =  round(mibian.BS([bnknifty_ltp, bn_pe_strike, 10, days_to_expiry], putPrice=bn_pe_ltp).impliedVolatility, 2) #showIV
+        iv_writer('bn_pe', message['exchange_time_stamp'], bn_pe_iv) #showIV
     else:
         pass
 
@@ -145,7 +146,7 @@ texts = ('NIFTY CALL', 'NIFTY PUT', 'BANKNIFTY CALL', 'BANKNIFTY PUT')
 sides = ('sell', 'buy')
 expiry = ('current', 'next')
 Instrument = ('NIFTY', 'BANKNIFTY')
-# file_create(texts) #showIV
+file_create(texts) #showIV
 
 if not NFO_LIST:
     messagebox.showerror("Error", "Check your internet connection")
@@ -271,7 +272,7 @@ class Action:
         n_ce_strike, n_pe_strike, bn_ce_strike, bn_pe_strike = [x for x in list(zip(*outs))[1]]
         n_ce_tok, n_pe_tok, bn_ce_tok, bn_pe_tok = ops.update_exks_tokens(symbols)
         import variables as v
-        # file_create([option]) #showIV
+        file_create([option]) #showIV
     
     def reset_form(option):
         Set_Var.n_ce_var() if option=='NIFTY CALL' else Set_Var.n_pe_var() if option=='NIFTY PUT' else Set_Var.bn_ce_var() \
@@ -499,38 +500,37 @@ class Action:
         else:
             labels.update_msgbx("Disabled Limit Order")
    
-    # def animate(i, option): #showIV
-    #     data = pd.read_csv('{}/temp/{}.csv'.format(mainfolder, option))
-    #     if len(data) > 100:
-    #         data = data[-100:]
-    #     x = range(0, len(data['Time']))
-    #     y = data['iv']
-    #     plt.cla()
-    #     plt.plot(x, y, label= option + ' - IV',linewidth=.70, color="orange")
-    #     plt.legend(loc='upper right')
-    #     plt.tight_layout()
+    def animate(i, option): #showIV
+        data = pd.read_csv('{}/temp/{}.csv'.format(mainfolder, option))
+        if len(data) > 100:
+            data = data[-100:]
+        x = range(0, len(data['Time']))
+        y = data['iv']
+        plt.cla()
+        plt.plot(x, y, label= option + ' - IV',linewidth=.70, color="orange")
+        plt.legend(loc='upper right')
+        plt.tight_layout()
         
-    # def show_IV(option): #showIV
-        # opt = 'n_ce' if option == 'NIFTY CALL' else 'n_pe' if option == 'NIFTY PUT' else 'bn_ce' if option == 'BANKNIFTY CALL' else 'bn_pe'
-        # f = plt.figure('IV chart')
-        # axi = f.add_subplot(111)
-        # axi.yaxis.tick_right()
-        # ani1 = FuncAnimation(plt.gcf(), Action.animate, fargs=(opt,), interval=100)
-        # plt.tight_layout()
-        # ax = plt.axes()
-        # ax.set_facecolor('black')
-        # plt.grid(color='black')
-        # plt.show()
+    def show_IV(option): #showIV
+        opt = 'n_ce' if option == 'NIFTY CALL' else 'n_pe' if option == 'NIFTY PUT' else 'bn_ce' if option == 'BANKNIFTY CALL' else 'bn_pe'
+        f = plt.figure('IV chart')
+        axi = f.add_subplot(111)
+        axi.yaxis.tick_right()
+        ani1 = FuncAnimation(plt.gcf(), Action.animate, fargs=(opt,), interval=100)
+        plt.axes().set_facecolor('black')
+        plt.grid(color='black')
+        plt.tight_layout()
+        plt.show()
         
     def on_closing():
         if messagebox.askyesno("Quit", "Do you want to quit?"):
             """remove temp files before closing"""
-            # try: #showIV
-            #     files = ('n_ce', 'n_pe', 'bn_ce', 'bn_pe')
-            #     for file in files:
-            #         os.remove("{}/temp/{}.csv".format(mainfolder, file))
-            # except:
-            #     pass
+            try: #showIV
+                files = ('n_ce', 'n_pe', 'bn_ce', 'bn_pe')
+                for file in files:
+                    os.remove("{}/temp/{}.csv".format(mainfolder, file))
+            except:
+                pass
             """set all trades to false"""
             options = ['NIFTY_CE', 'NIFTY_PE', 'BANKNIFTY_CE', 'BANKNIFTY_PE']
             for option in options:
@@ -595,7 +595,7 @@ class gui_contents:
         enter_param = partial(Action.place_order, option, side, qnty, spot_level)
         exit_param = partial(Action.exit_order, option)
         get_param = partial(Action.get_param, option, side, spot_level)
-        # iv_show = partial(Action.show_IV, option) #showIV
+        iv_show = partial(Action.show_IV, option) #showIV
         get_p = tk.Button(frame,text = 'G',  font = ('',12,'bold'), command = get_param, width=3, bg="#e6e600", state=NORMAL)
         get_p.grid(row=1,column=9, padx=6, pady=3)
         reset = tk.Button(frame,text = 'R',  font = ('',12,'bold'), command = reset_param, width=3, bg="#66d9ff", state=NORMAL)
@@ -608,8 +608,8 @@ class gui_contents:
         enter.grid(row=1,column=11, padx=6, pady=3)
         exit = tk.Button(frame,text = 'X', font = ('',12,'bold'), command = exit_param, width=3, bg="#ff3300")
         exit.grid(row=2,column=11, padx=6, pady=3)
-        # show_iv = tk.Button(frame,text = 'IV', font = ('',8,'bold'), command = iv_show, width=3, bg="#ff9933") #showIV
-        # show_iv.grid(row=2,column=12, padx=6, pady=3) #showIV
+        show_iv = tk.Button(frame,text = 'IV', font = ('',8,'bold'), command = iv_show, width=3, bg="#ff9933") #showIV
+        show_iv.grid(row=2,column=12, padx=6, pady=3) #showIV
         
     def connection():
         global save_brk, edit_brk, f1_brk, f2_brk, f3_brk, f4_brk, f5_brk
