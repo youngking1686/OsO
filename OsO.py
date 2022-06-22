@@ -58,11 +58,11 @@ def start_websocket(NFO_LIST):
     global nf_tok
     global bn_tok
     global days_to_expiry
-    username = '174874'
-    password = 'Delldoll789$'
-    api_secret = 're4kOfrybl8UXS3XPB3zWGbhL1rEsdw2rEydFME353BVuDdkArzeMoDji4iLo5cz' #ilay-account
-    app_id = 'KoemGSfEvi'
-    twoFA = '1986'
+    username = ''
+    password = ''
+    api_secret = '' 
+    app_id = ''
+    twoFA = ''
     excng = ['NSE', 'NFO']
     access_token = AliceBlue.login_and_get_access_token(username=username, password=password,\
             twoFA=twoFA,  api_secret=api_secret, app_id=app_id)
